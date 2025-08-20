@@ -9,9 +9,18 @@
   </head>
   <body>
     <div class="container">
-      <h1>KMM‑Konverterare & GPS</h1>
+      <!-- ÖSB-logotyp -->
+      <div class="logo-container">
+        <img src="TD_logga.png" alt="ÖSB Logotyp" />
+      </div>
+
+      <h1>KMM‑Konverterare</h1>
+
+      <!-- Visning av spann -->
+      <div id="rangeInfo"></div>
+
       <div id="controls">
-        <input type="number" id="inputKM" placeholder="Skriv KM‑värde" />
+        <input type="number" id="inputKM" placeholder="Skriv KMM‑värde" />
         <button id="convertBtn">Konvertera</button>
       </div>
 
@@ -26,6 +35,7 @@
       </table>
 
       <p id="result">Laddar...</p>
+
       <div id="modeButtons">
         <button onclick="setViewMode('input')">Visa Konvertering</button>
         <button onclick="setViewMode('gps')">Visa min närmaste position</button>
