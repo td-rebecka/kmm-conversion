@@ -10,10 +10,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const iconNearest = new L.Icon.Default();
   const iconConversion = new L.Icon.Default();
 
-  // Ladda JSON-data
-  fetch("km_match.json")
+  // Ladda JSON-data och initiera GPS först när datan är tillgänglig
+  fetch("km_match_close.json")
     .then((res) => res.json())
-    .then((json) => (data = json))
+    .then((json) => {
+      data = json;
+
+      // Visa RW och MW spann i rangeInfo
+      const sortedByRW = [...data].sort((a, b) => a.KM_RW - b.KM_RW);
+      const sortedByMW = [...data].sort((a, b) => a.KM_MW - b.KM_MW);
+
+      const rwStart = sortedByRW[0]?.KM_RW;
+      const rwEnd = sortedByRW[sortedByRW.length - 1]?.KM_RW;
+      const mwStart = sortedByMW[0]?.KM_MW;
+      const mwEnd = sortedByMW[sortedByMW.length - 1]?.KM_MW;
+
+      document.getElementById(
+        "rangeInfo"
+      ).innerText = `RW: ${rwStart} – ${rwEnd} | MW: ${mwStart} – ${mwEnd}`;
+
+      // När datan är laddad – hämta GPS-position
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(handlePosition);
+      } else {
+        document.getElementById("gpsLocation").innerText =
+          "GPS ej tillgängligt";
+      }
+    })
     .catch(() => alert("Misslyckades att läsa data"));
 
   // Koppla knappen till funktionen
@@ -53,8 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function findClosest(lat, lon) {
     let best = null,
       minDist = Infinity;
+
     data.forEach((d) => {
-      if (d.lat !== undefined && d.lon !== undefined) {
+      if (
+        typeof d.lat === "number" &&
+        typeof d.lon === "number" &&
+        !isNaN(d.lat) &&
+        !isNaN(d.lon)
+      ) {
         const dist = haversine(lat, lon, d.lat, d.lon);
         if (dist < minDist) {
           minDist = dist;
@@ -62,7 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-    return best || { ...data[0], dist: null };
+
+    return best || null;
   }
 
   // Uppdatera historik-tabellen med senaste 5 träffar
@@ -89,8 +119,12 @@ document.addEventListener("DOMContentLoaded", () => {
     initMap(lat, lon);
 
     const nearest = findClosest(lat, lon);
-    if (!nearest) {
-      document.getElementById("result").innerText = "Inga data!";
+
+    // Kontrollera att vi fått riktiga koordinater
+    if (!nearest || isNaN(nearest.lat) || isNaN(nearest.lon)) {
+      console.error("Ogiltiga koordinater från findClosest():", nearest);
+      document.getElementById("result").innerText =
+        "Ingen giltig punkt hittades.";
       return;
     }
 
@@ -162,9 +196,4 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     else if (mode === "input") convertKMInput(true);
   };
-
-  // Hämta GPS-position vid sidladdning
-  if (navigator.geolocation)
-    navigator.geolocation.getCurrentPosition(handlePosition);
-  else document.getElementById("gpsLocation").innerText = "GPS ej tillgängligt";
 });
