@@ -44,6 +44,16 @@ document.addEventListener("DOMContentLoaded", () => {
     convertKMInput(true);
   });
 
+  // Gör så att Enter-tangenten också triggar konvertering
+  document
+    .getElementById("inputKM")
+    .addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        convertKMInput(true);
+      }
+    });
+
   // Haversine: beräkna avstånd i meter
   function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371000,
@@ -56,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  // Initiera kartan med Esri Gray (light)
   function initMap(lat, lon) {
     if (!map) {
       map = L.map("map").setView([lat, lon], 13);
@@ -72,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .openPopup();
   }
 
-  // Hitta närmaste punkt i data
   function findClosest(lat, lon) {
     let best = null,
       minDist = Infinity;
@@ -95,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return best || null;
   }
 
-  // Uppdatera historik-tabellen med senaste 5 träffar
   function updateHistory(rw, mw) {
     history.unshift({ rw, mw });
     if (history.length > 5) history.pop();
@@ -108,7 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Visa position + närmaste punkt
   function handlePosition(pos) {
     const lat = pos.coords.latitude,
       lon = pos.coords.longitude;
@@ -120,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const nearest = findClosest(lat, lon);
 
-    // Kontrollera att vi fått riktiga koordinater
     if (!nearest || isNaN(nearest.lat) || isNaN(nearest.lon)) {
       console.error("Ogiltiga koordinater från findClosest():", nearest);
       document.getElementById("result").innerText =
@@ -147,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateHistory(nearest.KM_RW, nearest.KM_MW);
   }
 
-  // Konvertera manuellt inmatat KM-värde och visa punkt
   function convertKMInput(showOnMap = true) {
     const val = parseFloat(document.getElementById("inputKM").value);
     if (isNaN(val)) return;
@@ -168,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("result").innerText = `Konvertering:\n${matchText}`;
     updateHistory(closest.KM_RW, closest.KM_MW);
 
-    // Lägg till säkerhetskontroll
     if (
       showOnMap &&
       typeof closest.lat === "number" &&
@@ -188,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Växla mellan lägen
   window.setViewMode = function (mode) {
     if (mode === "gps" && gpsPosition)
       handlePosition({
