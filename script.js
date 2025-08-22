@@ -54,6 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    history.length = 0;
+    const tbody = document.querySelector("#conversionHistory tbody");
+    tbody.innerHTML = "";
+    document.getElementById("inputKM").value = "";
+    document.getElementById("result").innerText = "";
+  });
+
   // Haversine: beräkna avstånd i meter
   function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371000,
